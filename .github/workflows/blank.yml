@@ -63,10 +63,9 @@ jobs:
       - name: ls file
         run: |
           find . -type f > 1.txt
-          cp 1.txt bin/targets
       - name : Upload artifact
         uses: actions/upload-artifact@master
         with:
           name: test
-          path: bin/targets/
+          path: 1.txt
           
