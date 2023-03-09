@@ -1,9 +1,9 @@
 #
 # This is free software, lisence use MIT.
-# 
+#
 # Copyright (C) 2019 P3TERX <https://p3terx.com>
 # Copyright (C) 2020 KFERMercer <KFER.Mercer@gmail.com>
-# 
+#
 # <https://github.com/KFERMercer/OpenWrt-CI>
 #
 
@@ -11,13 +11,15 @@ name: OpenWrt
 
 on:
   push:
-    branches: 
+    branches:
       - master
   #schedule:
   #    - cron: 0 0 1 * *
   watch:
     types: started
-
+env:
+  UPLOAD_FIRMWARE: true
+  UPLOAD_COWTRANSFER: true
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -42,7 +44,7 @@ jobs:
           mv ./lede/* ./
       - name: Install Helloword
         run: |
-          echo "src-git helloworld https://github.com/fw876/helloworld" >> ./feeds.conf.default 
+          echo "src-git helloworld https://github.com/fw876/helloworld" >> ./feeds.conf.default
       - name: Install OpenClash
         run: |
           mkdir package/luci-app-openclash
@@ -63,9 +65,26 @@ jobs:
       - name: ls file
         run: |
           find . -type f > 1.txt
-      - name : Upload artifact
+          mkdir test
+          cp 1.txt test
+      - name: Organize files
+        id: organize
+        if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+        run: |
+          cd test
+          echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+          echo "::set-output name=status::success"
+
+      - name: Upload artifact
         uses: actions/upload-artifact@master
         with:
           name: test
           path: 1.txt
-          
+      - name: Upload firmware to cowtransfer
+        id: cowtransfer
+        if: steps.organize.outputs.status == 'success' && env.UPLOAD_COWTRANSFER == 'true' && !cancelled()
+        run: |
+          curl -fsSL git.io/file-transfer | sh
+          ./transfer cow --block 2621440 -s -p 64 --no-progress ${FIRMWARE} 2>&1 | tee cowtransfer.log
+          echo "::warning file=cowtransfer.com::$(cat cowtransfer.log | grep https)"
+          echo "::set-output name=url::$(cat cowtransfer.log | grep https | cut -f3 -d" ")"
