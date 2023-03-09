@@ -20,6 +20,7 @@ on:
 env:
   UPLOAD_FIRMWARE: true
   UPLOAD_COWTRANSFER: true
+  ACTIONS_STEP_DEBUG: true
 jobs:
   build:
     runs-on: ubuntu-latest
