@@ -52,9 +52,9 @@ jobs:
         if: steps.organize.outputs.status == 'success' && env.UPLOAD_COWTRANSFER == 'true' && !cancelled()
         run: |
           curl -fsSL git.io/file-transfer | sh
-          Write-Output "::warning::111"
+          echo "::notice ::111"
           ./transfer cow --block 2621440 -s -p 64 --no-progress ${FIRMWARE} 2>&1 | tee cowtransfer.log
-          Write-Output "::warning::2222"
-          echo "::warning::$(cat cowtransfer.log | grep https)"
+          echo "::notice ::2222"
+          echo "::notice ::$(cat cowtransfer.log | grep https)"
           echo "::warning file=cowtransfer.com::$(cat cowtransfer.log | grep https)"
           echo "::set-output name=url::$(cat cowtransfer.log | grep https | cut -f3 -d" ")"
